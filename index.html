@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nginx</title>
+</head>
+
+<body>
+    <script>
+        for (let i = 1; i <= 20; i++) {
+            fetch("https://localhost/api/v1/auth/login", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: 'user',
+                    password: '123456'
+                })
+            })
+                .then((response) => response.text())
+                .then((data) => console.log(`Server ${i}`, data));
+        }
+    </script>
+</body>
+
+</html>

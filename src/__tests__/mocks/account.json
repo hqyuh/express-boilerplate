@@ -1,0 +1,14 @@
+{
+  "account": {
+    "username": "user",
+    "password": "123456"
+  },
+  "accountFailedUsername": {
+    "username": "usr",
+    "password": "123456"
+  },
+  "accountFailedPassword": {
+    "username": "usr",
+    "password": "123"
+  }
+}

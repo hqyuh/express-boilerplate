@@ -1,0 +1,13 @@
+{
+  "httpStatusCode": 400,
+  "errors": [
+    {
+      "errorCode": "M005-003",
+      "errorMessage": "Username cannot be empty"
+    },
+    {
+      "errorCode": "M005-004",
+      "errorMessage": "Password cannot be empty"
+    }
+  ]
+}

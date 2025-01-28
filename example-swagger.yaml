@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: Kenki DDP
+  description: |-
+    Kenki DDP API Design
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Development server
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login to system
+      description: Login to system
+      operationId: login
+      requestBody:
+        description: User information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+        required: true
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  EHttpStatusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: your_access_token
+                      user:
+                        type: object
+                        properties:
+                          username:
+                            type: string
+                            example: user
+                          role:
+                            type: string
+                            example: admin
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  httpStatusCode:
+                    type: integer
+                    example: 400
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          example: too_small
+                        minimum:
+                          type: integer
+                          example: 1
+                        type:
+                          type: string
+                          example: string
+                        inclusive:
+                          type: boolean
+                          example: true
+                        exact:
+                          type: boolean
+                          example: false
+                        message:
+                          type: string
+                          example: Username cannot be empty
+                        path:
+                          type: array
+                          items:
+                            type: string
+                            example: username
+  /auth/me:
+    get:
+      tags:
+        - auth
+      summary: Get current user
+      description: Get current user
+      operationId: getMe
+      responses:
+        '200':
+          description: Get current user success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  EHttpStatusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          username:
+                            type: string
+                            example: user
+                          role:
+                            type: string
+                            example: admin
+      security:
+        - BearerAuth: []
+components:
+  schemas:
+    UserLogin:
+      required:
+        - username
+        - password
+      type: object
+      properties:
+        username:
+          type: string
+          example: user
+        password:
+          type: string
+          example: 123456
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

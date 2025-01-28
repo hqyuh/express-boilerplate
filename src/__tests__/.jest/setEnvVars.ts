@@ -1,0 +1,13 @@
+process.env.HOST = 'localhost';
+process.env.PORT = '4000';
+process.env.NODE_ENV = 'production';
+process.env.CONTEXT_PATH = '/api/v1';
+process.env.DB_TYPE = 'postgres';
+process.env.DB_HOST = 'localhost';
+process.env.DB_PORT = '5432';
+process.env.DB_USERNAME = 'postgres';
+process.env.DB_PASSWORD = 'postgres';
+process.env.ACCESS_TOKEN_SECRET_KEY = 'your_access_secret_key';
+process.env.ACCESS_TOKEN_EXPIRES_IN = '1d';
+process.env.REFRESH_TOKEN_SECRET_KEY = 'your_refresh_secret_key';
+process.env.REFRESH_TOKEN_EXPIRES_IN = '7d';

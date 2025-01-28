@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    ".git",
+    "node_modules",
+    "dist"
+  ],
+  "watch": [
+    "./src",
+    "./example-swagger.yaml"
+  ],
+  "exec": "yarn start:dev",
+  "ext": "ts"
+}

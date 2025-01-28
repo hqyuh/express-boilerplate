@@ -1,0 +1,178 @@
+services:
+  database:
+    container_name: database
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: express-database
+      PGDATA: /data/postgres
+    volumes:
+      - ./src/modules/databases/resources:/var/lib/data/resources
+      - ./src/modules/databases/resources/file-dev.sql:/docker-entrypoint-initdb.d/file-dev.sql
+      - ./src/modules/databases/resources/file-prod.sql:/docker-entrypoint-initdb.d/file-prod.sql
+    ports:
+      - 5432:5432
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - express-network
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dpp@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - 5050:80
+    restart: always
+    networks:
+      - express-network
+
+  redis:
+    container_name: redis
+    image: redis:7.4.2-alpine
+    command: redis-server --save 20 1 --loglevel warning --requirepass $REDIS_PASSWORD
+    ports:
+      - $REDIS_PORT:6379
+    volumes:
+      - redis_data:/data
+    env_file:
+      - .env.production
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - express-network
+
+  redis-insight:
+    container_name: redis-insight
+    image: redislabs/redisinsight:latest
+    ports:
+      - 5540:5540
+    volumes:
+      - redis_insight:/data
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost:5540 || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - express-network
+
+  server1:
+    depends_on:
+      - database
+      - redis
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: server1
+    container_name: server1
+    environment:
+      - PORT=4000
+    ports:
+      - '4000:4000'
+    env_file:
+      - .env.production
+    volumes:
+      - ./logs:/logs
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000/api/v1/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - express-network
+
+  server2:
+    depends_on:
+      - database
+      - redis
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: server2
+    container_name: server2
+    environment:
+      - PORT=4001
+    ports:
+      - '4001:4001'
+    env_file:
+      - .env.production
+    volumes:
+      - ./logs:/logs
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4001/api/v1/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - express-network
+
+  server3:
+    depends_on:
+      - database
+      - redis
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: server3
+    container_name: server3
+    environment:
+      - PORT=4002
+    ports:
+      - '4002:4002'
+    env_file:
+      - .env.production
+    volumes:
+      - ./logs:/logs
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4002/api/v1/health']
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+    networks:
+      - express-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - '8080:8080'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl/nginx-self.crt:/etc/nginx/ssl/nginx-self.crt
+      - ./nginx/ssl/nginx-self.key:/etc/nginx/ssl/nginx-self.key
+    depends_on:
+      - server1
+      - server2
+      - server3
+    restart: always
+    networks:
+      - express-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  redis_insight:
+    driver: local
+
+networks:
+  express-network:
+    driver: bridge

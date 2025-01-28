@@ -1,0 +1,8 @@
+{
+  "httpStatusCode": 200,
+  "data": {
+    "user": {
+      "username": "user"
+    }
+  }
+}

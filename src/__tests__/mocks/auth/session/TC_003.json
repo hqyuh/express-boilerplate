@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "errorCode": "M005-002",
+      "errorMessage": "Not authenticated"
+    }
+  ],
+  "httpStatusCode": 401
+}
