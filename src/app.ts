@@ -11,6 +11,7 @@ import requestIdMiddleware from '@/common/middlewares/request-id-middleware';
 import { cache } from '@/modules/cache/cache';
 import { pgDatabase } from '@/modules/databases/PgDatabase';
 import router from '@/routes';
+import { initializeWebSocket } from '@/websocket';
 import cors from 'cors';
 import express, { json, urlencoded, type NextFunction, type Request, type Response } from 'express';
 import expressHttpContext from 'express-http-context';
@@ -36,6 +37,7 @@ export class App {
     this.middlewares();
     this.routes();
     this.initializeErrorHandle();
+    initializeWebSocket();
   }
 
   private createRateLimiter() {

@@ -150,7 +150,7 @@ class WinstonLogger {
           ...acc,
           [key]: error[key],
         }),
-        { name: error.name }
+        { name: error }
       );
 
     const logDetails = {
