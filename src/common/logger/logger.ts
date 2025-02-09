@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable unicorn/no-array-reduce */
 /* eslint-disable max-len */
@@ -41,6 +42,7 @@ export enum MsgIds {
   M003003 = 'M003-003',
   M003004 = 'M003-004',
   M003005 = 'M003-005',
+  M003006 = 'M003-006',
 
   // Login
   M005001 = 'M005-001',
@@ -72,6 +74,7 @@ const msgInfo = new Map<MsgIds, [TMsgLevelType, string]>([
   [MsgIds.M003003, [MsgLevel.ERROR, 'The server has encountered an unexpected error']],
   [MsgIds.M003004, [MsgLevel.INFO, 'The swagger is running']],
   [MsgIds.M003005, [MsgLevel.ERROR, 'Too many requests from this IP, please try again after 15 minutes']],
+  [MsgIds.M003006, [MsgLevel.INFO, 'The socket is running']],
 
   // Login
   [MsgIds.M005001, [MsgLevel.ERROR, 'The username or password is incorrect']],
@@ -88,15 +91,15 @@ const msgInfo = new Map<MsgIds, [TMsgLevelType, string]>([
 ]);
 
 class WinstonLogger {
-  private _prodTransports: WinstonDaily[];
+  private readonly _prodTransports: WinstonDaily[];
 
-  private _localTransports: winston.transports.ConsoleTransportInstance[];
+  private readonly _localTransports: winston.transports.ConsoleTransportInstance[];
 
-  private _loggerWinston: winston.Logger;
+  private readonly _loggerWinston: winston.Logger;
 
-  private _logFormat: winston.Logform.Format;
+  private readonly _logFormat: winston.Logform.Format;
 
-  private _logId = expressHttpContext.get('requestId');
+  private readonly _logId = expressHttpContext.get('requestId');
 
   constructor(name: TLogFileNameType = 'server', dir = './logs', _level = 'info', maxSize = '10m', maxFiles = '30d') {
     this._logFormat = winston.format.combine(

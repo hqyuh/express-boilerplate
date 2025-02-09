@@ -72,6 +72,8 @@ module.exports = {
     ],
     // plugin:sonarjs
     'sonarjs/no-duplicate-string': 'off',
+    'sonarjs/slow-regex': 'off',
+    'sonarjs/no-invalid-await': 'off',
     /**
      * plugin:unicorn
      */
@@ -99,61 +101,11 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', vars: 'all', args: 'after-used' }],
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
-    '@typescript-eslint/ban-types': [
-      'error',
-      {
-        types: {
-          Object: {
-            message: 'Avoid using the `Object` type. Did you mean `object`?',
-          },
-          Function: {
-            message: 'Avoid using the `Function` type. Prefer a specific function type, like `() => void`.',
-          },
-          Boolean: {
-            message: 'Avoid using the `Boolean` type. Did you mean `boolean`?',
-            fixWith: 'boolean',
-          },
-          Number: {
-            message: 'Avoid using the `Number` type. Did you mean `number`?',
-            fixWith: 'number',
-          },
-          Symbol: {
-            message: 'Avoid using the `Symbol` type. Did you mean `symbol`?',
-            fixWith: 'symbol',
-          },
-          String: {
-            message: 'Avoid using the `String` type. Did you mean `string`?',
-            fixWith: 'string',
-          },
-          '{}': {
-            message: 'Use Record<K, V> instead',
-            fixWith: 'Record<K, V>',
-          },
-          object: {
-            message: 'Use Record<K, V> instead',
-            fixWith: 'Record<K, V>',
-          },
-        },
-      },
-    ],
     '@typescript-eslint/explicit-member-accessibility': [
       'off',
       {
         overrides: {
           constructors: 'off',
-        },
-      },
-    ],
-    '@typescript-eslint/member-delimiter-style': [
-      'error',
-      {
-        multiline: {
-          delimiter: 'semi',
-          requireLast: true,
-        },
-        singleline: {
-          delimiter: 'semi',
-          requireLast: false,
         },
       },
     ],
@@ -180,8 +132,6 @@ module.exports = {
     '@typescript-eslint/no-unsafe-return': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
     '@typescript-eslint/no-require-imports': 'error',
-    'keyword-spacing': 'off',
-    '@typescript-eslint/keyword-spacing': 'error',
     '@typescript-eslint/no-namespace': 'error',
     '@typescript-eslint/no-this-alias': 'error',
     '@typescript-eslint/no-use-before-define': 'error',
@@ -200,7 +150,6 @@ module.exports = {
     //     allowTemplateLiterals: true,
     //   },
     // ],
-    '@typescript-eslint/semi': ['error', 'always'],
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -260,7 +209,6 @@ module.exports = {
         modifiers: ['requiresQuotes'],
       },
     ],
-    '@typescript-eslint/type-annotation-spacing': 'error',
     '@typescript-eslint/unified-signatures': 'error',
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',

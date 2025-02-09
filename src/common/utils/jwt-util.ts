@@ -55,7 +55,7 @@ export default class JwtUtils {
             errorCallback(error, decoded);
           }
 
-          reject(errorOptions || error);
+          reject(errorOptions ? new Error(JSON.stringify(errorOptions)) : error);
         } else {
           resolve(decoded as T);
         }

@@ -4,9 +4,9 @@ import catchBlockCallback from '@/common/helper/catch-block-callback';
 import { authMiddleware } from '@/common/middlewares/auth-middlewares';
 import { cacheMiddleware } from '@/common/middlewares/cache-middleware';
 import { roleMiddleware } from '@/common/middlewares/role-middlewares';
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 
-const authRouter = Router();
+const authRouter: ExpressRouter = Router();
 
 authRouter.post('/login', catchBlockCallback(AuthController.login));
 

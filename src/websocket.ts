@@ -1,65 +1,93 @@
 /* eslint-disable no-console */
 import { WebSocket, Server as WebSocketServer } from 'ws';
 
-const connections: Record<string, WebSocket[]> = {};
+class WebSocketManager {
+  private connections: Record<string, WebSocket[]> = {};
+
+  private globalConnections: WebSocket[] = [];
+
+  public initializeWebSocket() {
+    const wsServer = new WebSocketServer({ port: 8080 });
+
+    wsServer.on('connection', (ws: WebSocket, request: Request) => {
+      const urlParams = new URLSearchParams(request.url.slice(1));
+      const user = urlParams.get('user');
+      const group = urlParams.get('group');
+
+      this.handleConnection(ws, user, group);
+    });
+
+    return wsServer;
+  }
+
+  private handleConnection(ws: WebSocket, user: string | null, group: string | null) {
+    const connectionType = group ? 'group' : 'global';
+    const groupInfo = group ? ` ${group}` : '';
+    console.log(`User ${user} joined ${connectionType}${groupInfo}`);
+
+    if (group) {
+      this.addConnection(ws, group);
+    } else {
+      this.globalConnections.push(ws);
+    }
+
+    ws.on('message', (data) => this.handleMessage(ws, data, user, group));
+    ws.on('close', () => this.handleClose(ws, user, group));
+  }
+
+  private addConnection(ws: WebSocket, group: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!this.connections[group]) {
+      this.connections[group] = [];
+    }
+
+    this.connections[group].push(ws);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private handleMessage(ws: WebSocket, data: any, user: string | null, group: string | null) {
+    let message = '';
+
+    if (Buffer.isBuffer(data)) {
+      message = data.toString('utf8');
+    }
+
+    if (group) {
+      this.broadcast(message, user, this.connections[group], `Group ${group}`);
+    } else {
+      this.broadcast(message, user, this.globalConnections, 'Globally');
+    }
+  }
+
+  private handleClose(ws: WebSocket, user: string | null, group: string | null) {
+    const connectionType = group ? `Group ${group}` : 'Globally';
+    console.log(`User ${user} left ${connectionType}`);
+
+    if (group) {
+      this.connections[group] = this.connections[group].filter((client) => client !== ws);
+
+      if (this.connections[group].length === 0) {
+        delete this.connections[group];
+      }
+    } else {
+      this.globalConnections = this.globalConnections.filter((client) => client !== ws);
+    }
+  }
+
+  private broadcast(message: string, user: string | null, clients: WebSocket[], logPrefix: string) {
+    console.log(`${logPrefix} has ${clients.length} members`);
+
+    for (const client of clients) {
+      if (client.readyState === WebSocket.OPEN) {
+        console.log(`User ${user} says ${logPrefix.toLowerCase()}: ${message}`);
+        client.send(`User ${user} says ${logPrefix.toLowerCase()}: ${message}`);
+      }
+    }
+  }
+}
 
 export function initializeWebSocket() {
-  const wsServer = new WebSocketServer({ port: 8080 });
+  const manager = new WebSocketManager();
 
-  wsServer.on('connection', (ws: WebSocket, request: Request) => {
-    const urlParams = new URLSearchParams(request.url.slice(1));
-    const user = urlParams.get('user');
-    const group = urlParams.get('group');
-
-    if (!group) {
-      ws.close(1008, 'Group not specified');
-
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!connections[group]) {
-      connections[group] = [];
-    }
-
-    connections[group].push(ws);
-    console.log(`User ${user} joined group ${group}`);
-
-    ws.on('message', (data) => {
-      console.log('received: %s', data);
-
-      let message = '';
-
-      if (Buffer.isBuffer(data)) {
-        message = data.toString('utf8');
-        // ws.send(`received: ${message}`);
-      }
-
-      // Broadcast the message to all members of the group
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (connections[group]) {
-        console.log(`Group ${group} has ${connections[group].length} members`);
-
-        for (const client of connections[group]) {
-          console.log(`Checking readyState: ${client.readyState}`);
-
-          if (client.readyState === WebSocket.OPEN) {
-            console.log(`User ${user} says: ${message}`);
-            client.send(`User ${user} says: ${message}`);
-          }
-        }
-      }
-    });
-
-    ws.on('close', () => {
-      console.log(`User ${user} left group ${group}`);
-      connections[group] = connections[group].filter((client) => client !== ws);
-
-      if (connections[group].length === 0) {
-        delete connections[group];
-      }
-    });
-  });
-
-  return wsServer;
+  return manager.initializeWebSocket();
 }

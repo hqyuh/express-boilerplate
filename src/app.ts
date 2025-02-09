@@ -13,7 +13,14 @@ import { pgDatabase } from '@/modules/databases/PgDatabase';
 import router from '@/routes';
 import { initializeWebSocket } from '@/websocket';
 import cors from 'cors';
-import express, { json, urlencoded, type NextFunction, type Request, type Response } from 'express';
+import express, {
+  json,
+  urlencoded,
+  type NextFunction,
+  type Request,
+  type RequestHandler,
+  type Response,
+} from 'express';
 import expressHttpContext from 'express-http-context';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -88,7 +95,11 @@ export class App {
     this.app.use(expressHttpContext.middleware);
     this.app.use(requestIdMiddleware);
     this.app.use(this.createRateLimiter());
-    this.app.use(config.contextPath + '/api-docs', swaggerUI.serve, swaggerUI.setup(this.swaggerDocument));
+    this.app.use(
+      config.contextPath + '/api-docs',
+      swaggerUI.serve as unknown as RequestHandler,
+      swaggerUI.setup(this.swaggerDocument) as unknown as RequestHandler
+    );
   }
 
   private initializeErrorHandle() {
@@ -127,6 +138,7 @@ const createInstance = async () => {
     const parameters = { HOST, PORT: PORT.toString(), CONTEXT_PATH: config.contextPath };
     logger.writeWithParameter(MsgIds.M003001, parameters);
     logger.writeWithParameter(MsgIds.M003004, { URL: `${HOST}:${PORT}${config.contextPath}/api-docs` });
+    logger.writeWithParameter(MsgIds.M003006, { URL: `${HOST}:${8080}` });
   });
 
   return instance;
