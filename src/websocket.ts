@@ -1,87 +1,57 @@
 /* eslint-disable no-console */
-import { WebSocket, Server as WebSocketServer } from 'ws';
+
+import { v4 as uuidv4 } from 'uuid';
+import { Server as WebSocketServer, type RawData, type WebSocket } from 'ws';
 
 class WebSocketManager {
-  private connections: Record<string, WebSocket[]> = {};
+  private connections: Record<string, WebSocket> = {};
 
-  private globalConnections: WebSocket[] = [];
+  private users: Record<string, { username: string | null; state: Record<string, unknown> }> = {};
 
   public initializeWebSocket() {
     const wsServer = new WebSocketServer({ port: 8080 });
 
     wsServer.on('connection', (ws: WebSocket, request: Request) => {
+      const uuid = uuidv4();
       const urlParams = new URLSearchParams(request.url.slice(1));
-      const user = urlParams.get('user');
-      const group = urlParams.get('group');
+      const username = urlParams.get('username');
 
-      this.handleConnection(ws, user, group);
+      this.connections[uuid] = ws;
+      this.users[uuid] = { username, state: {} };
+
+      ws.on('message', (message) => this.handleMessage(message, uuid));
+      ws.on('close', () => this.handleClose(uuid));
     });
 
     return wsServer;
   }
 
-  private handleConnection(ws: WebSocket, user: string | null, group: string | null) {
-    const connectionType = group ? 'group' : 'global';
-    const groupInfo = group ? ` ${group}` : '';
-    console.log(`User ${user} joined ${connectionType}${groupInfo}`);
+  private handleMessage(bytes: RawData, uuid: string): void {
+    const message = JSON.parse(
+      // eslint-disable-next-line max-len
+      bytes instanceof Buffer ? bytes.toString('utf8') : Buffer.from(bytes as ArrayBuffer).toString('utf8')
+    );
+    const user = this.users[uuid];
 
-    if (group) {
-      this.addConnection(ws, group);
-    } else {
-      this.globalConnections.push(ws);
+    user.state = message;
+
+    for (const tUUID of Object.keys(this.connections)) {
+      const connection = this.connections[tUUID];
+      const result = JSON.stringify(this.users);
+      connection.send(result);
     }
 
-    ws.on('message', (data) => this.handleMessage(ws, data, user, group));
-    ws.on('close', () => this.handleClose(ws, user, group));
+    console.log(`${user.username} updated state: ${JSON.stringify(user.state)}`);
   }
 
-  private addConnection(ws: WebSocket, group: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!this.connections[group]) {
-      this.connections[group] = [];
-    }
+  private handleClose(uuid: string): void {
+    delete this.connections[uuid];
+    delete this.users[uuid];
 
-    this.connections[group].push(ws);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private handleMessage(ws: WebSocket, data: any, user: string | null, group: string | null) {
-    let message = '';
-
-    if (Buffer.isBuffer(data)) {
-      message = data.toString('utf8');
-    }
-
-    if (group) {
-      this.broadcast(message, user, this.connections[group], `Group ${group}`);
-    } else {
-      this.broadcast(message, user, this.globalConnections, 'Globally');
-    }
-  }
-
-  private handleClose(ws: WebSocket, user: string | null, group: string | null) {
-    const connectionType = group ? `Group ${group}` : 'Globally';
-    console.log(`User ${user} left ${connectionType}`);
-
-    if (group) {
-      this.connections[group] = this.connections[group].filter((client) => client !== ws);
-
-      if (this.connections[group].length === 0) {
-        delete this.connections[group];
-      }
-    } else {
-      this.globalConnections = this.globalConnections.filter((client) => client !== ws);
-    }
-  }
-
-  private broadcast(message: string, user: string | null, clients: WebSocket[], logPrefix: string) {
-    console.log(`${logPrefix} has ${clients.length} members`);
-
-    for (const client of clients) {
-      if (client.readyState === WebSocket.OPEN) {
-        console.log(`User ${user} says ${logPrefix.toLowerCase()}: ${message}`);
-        client.send(`User ${user} says ${logPrefix.toLowerCase()}: ${message}`);
-      }
+    for (const tUUID of Object.keys(this.connections)) {
+      const connection = this.connections[tUUID];
+      const message = JSON.stringify(this.users);
+      connection.send(message);
     }
   }
 }
