@@ -43,6 +43,12 @@ export enum MsgIds {
   M003004 = 'M003-004',
   M003005 = 'M003-005',
   M003006 = 'M003-006',
+  M003007 = 'M003-007',
+  M003008 = 'M003-008',
+  M003009 = 'M003-009',
+  M0030010 = 'M003-0010',
+  M0030011 = 'M003-0011',
+  M0030012 = 'M003-0012',
 
   // Login
   M005001 = 'M005-001',
@@ -75,6 +81,12 @@ const msgInfo = new Map<MsgIds, [TMsgLevelType, string]>([
   [MsgIds.M003004, [MsgLevel.INFO, 'The swagger is running']],
   [MsgIds.M003005, [MsgLevel.ERROR, 'Too many requests from this IP, please try again after 15 minutes']],
   [MsgIds.M003006, [MsgLevel.INFO, 'The socket is running']],
+  [MsgIds.M003007, [MsgLevel.ERROR, 'Images only! (jpeg, jpg, png, gif)']],
+  [MsgIds.M003008, [MsgLevel.ERROR, 'Video only! (mp4, avi, mov, mkv, wmv)']],
+  [MsgIds.M003009, [MsgLevel.ERROR, 'Upload file or video error']],
+  [MsgIds.M0030010, [MsgLevel.ERROR, 'File too large. Maximum allowed size is {type}MB.']],
+  [MsgIds.M0030011, [MsgLevel.ERROR, 'Unexpected file field']],
+  [MsgIds.M0030012, [MsgLevel.ERROR, 'File only! (pdf, xlsx, docx)']],
 
   // Login
   [MsgIds.M005001, [MsgLevel.ERROR, 'The username or password is incorrect']],
