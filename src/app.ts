@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable no-console */
 /* eslint-disable max-len */
 import fs from 'fs';
 import type http from 'http';
@@ -11,20 +13,15 @@ import requestIdMiddleware from '@/common/middlewares/request-id-middleware';
 import { cache } from '@/modules/cache/cache';
 import { pgDatabase } from '@/modules/databases/PgDatabase';
 import router from '@/routes';
-import { initializeWebSocket } from '@/websocket';
+// import { initializeWebSocket } from '@/websocket';
 import cors from 'cors';
-import express, {
-  json,
-  urlencoded,
-  type NextFunction,
-  type Request,
-  type RequestHandler,
-  type Response,
-} from 'express';
+import express, { json, urlencoded, type NextFunction, type Request, type Response } from 'express';
 import expressHttpContext from 'express-http-context';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import RedisStore from 'rate-limit-redis';
+import type socket from 'socket.io';
+import { Server, type Socket } from 'socket.io';
 import swaggerUI, { type JsonObject } from 'swagger-ui-express';
 import YAML from 'yaml';
 
@@ -38,13 +35,14 @@ export class App {
 
   private swaggerDocument: JsonObject;
 
+  public io: socket.Server;
+
   constructor() {
     this.app = express();
     this.loadSwaggerDocument();
     this.middlewares();
     this.routes();
     this.initializeErrorHandle();
-    initializeWebSocket();
   }
 
   private createRateLimiter() {
@@ -95,16 +93,36 @@ export class App {
     this.app.use(expressHttpContext.middleware);
     this.app.use(requestIdMiddleware);
     this.app.use(this.createRateLimiter());
-    this.app.use(
-      config.contextPath + '/api-docs',
-      swaggerUI.serve as unknown as RequestHandler,
-      swaggerUI.setup(this.swaggerDocument) as unknown as RequestHandler
-    );
+    this.app.use(config.contextPath + '/api-docs', swaggerUI.serve, swaggerUI.setup(this.swaggerDocument));
   }
 
   private initializeErrorHandle() {
     this.app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       baseExceptionHandler.handleError(err, res);
+    });
+  }
+
+  public initializeSocketIO() {
+    this.io = new Server(this.server, {
+      cors: {
+        origin: '*',
+      },
+    });
+
+    this.io.on('connection', (socket: Socket) => {
+      const username = socket.handshake.query.username as string;
+
+      socket.on('message', (msg) => {
+        console.log(`User ${username}: ${msg}`);
+
+        this.io.emit('message', { username, message: msg });
+      });
+
+      socket.emit('chat-welcome', `Welcome to the chat, ${username}!`);
+
+      socket.on('disconnect', () => {
+        console.log(`${username} disconnected`);
+      });
     });
   }
 
@@ -138,8 +156,10 @@ const createInstance = async () => {
     const parameters = { HOST, PORT: PORT.toString(), CONTEXT_PATH: config.contextPath };
     logger.writeWithParameter(MsgIds.M003001, parameters);
     logger.writeWithParameter(MsgIds.M003004, { URL: `${HOST}:${PORT}${config.contextPath}/api-docs` });
-    logger.writeWithParameter(MsgIds.M003006, { URL: `${HOST}:${8080}` });
+    // logger.writeWithParameter(MsgIds.M003006, { URL: `${HOST}:${8080}` });
   });
+
+  instance.initializeSocketIO();
 
   return instance;
 };

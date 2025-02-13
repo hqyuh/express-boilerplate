@@ -135,6 +135,7 @@ export const uploadMiddleware =
 
     const uploadHandler = multiple ? upload.array(typeFile, MAX_COUNT) : upload.single(typeFile);
 
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     uploadHandler(req, res, (err: unknown) => {
       if (err instanceof BadRequestException) {
         return next(err);

@@ -24,6 +24,7 @@ authRouter.post('/upload', uploadMiddleware('file', false), function (req, res) 
   //   return res.status(400).send('No file uploaded.');
   // }
 
+  // eslint-disable-next-line no-console
   console.log('File uploaded:', req.file);
 
   res.send('File uploaded successfully!');
