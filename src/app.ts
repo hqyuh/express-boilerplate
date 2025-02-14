@@ -12,16 +12,16 @@ import { MsgIds, logger } from '@/common/logger/logger';
 import requestIdMiddleware from '@/common/middlewares/request-id-middleware';
 import { cache } from '@/modules/cache/cache';
 import { pgDatabase } from '@/modules/databases/PgDatabase';
+import { socketIOManager } from '@/modules/ws/socket';
+// import { websocketManager } from '@/modules/ws/websocket1';
+// import { websocketManager } from '@/modules/ws/websocket';
 import router from '@/routes';
-// import { initializeWebSocket } from '@/websocket';
 import cors from 'cors';
 import express, { json, urlencoded, type NextFunction, type Request, type Response } from 'express';
 import expressHttpContext from 'express-http-context';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import RedisStore from 'rate-limit-redis';
-import type socket from 'socket.io';
-import { Server, type Socket } from 'socket.io';
 import swaggerUI, { type JsonObject } from 'swagger-ui-express';
 import YAML from 'yaml';
 
@@ -34,8 +34,6 @@ export class App {
   public server: http.Server;
 
   private swaggerDocument: JsonObject;
-
-  public io: socket.Server;
 
   constructor() {
     this.app = express();
@@ -102,30 +100,6 @@ export class App {
     });
   }
 
-  public initializeSocketIO() {
-    this.io = new Server(this.server, {
-      cors: {
-        origin: '*',
-      },
-    });
-
-    this.io.on('connection', (socket: Socket) => {
-      const username = socket.handshake.query.username as string;
-
-      socket.on('message', (msg) => {
-        console.log(`User ${username}: ${msg}`);
-
-        this.io.emit('message', { username, message: msg });
-      });
-
-      socket.emit('chat-welcome', `Welcome to the chat, ${username}!`);
-
-      socket.on('disconnect', () => {
-        console.log(`${username} disconnected`);
-      });
-    });
-  }
-
   private routes() {
     this.app.use(config.contextPath, router);
   }
@@ -156,10 +130,14 @@ const createInstance = async () => {
     const parameters = { HOST, PORT: PORT.toString(), CONTEXT_PATH: config.contextPath };
     logger.writeWithParameter(MsgIds.M003001, parameters);
     logger.writeWithParameter(MsgIds.M003004, { URL: `${HOST}:${PORT}${config.contextPath}/api-docs` });
-    // logger.writeWithParameter(MsgIds.M003006, { URL: `${HOST}:${8080}` });
+    logger.writeWithParameter(MsgIds.M003006, { URL: `${HOST}:${PORT}` });
   });
 
-  instance.initializeSocketIO();
+  // create ws
+  // websocketManager.initializeWebSocket(instance.server);
+
+  // socket.io
+  socketIOManager.initializeSocketIO(instance.server);
 
   return instance;
 };

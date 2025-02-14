@@ -1,15 +1,28 @@
+/* eslint-disable max-len */
 /* eslint-disable no-console */
+import type http from 'http';
 
+import type { TNullable } from '@/common/interfaces/entity-type';
 import { v4 as uuidv4 } from 'uuid';
 import { Server as WebSocketServer, type RawData, type WebSocket } from 'ws';
 
 class WebSocketManager {
+  private static instance: TNullable<WebSocketManager> = null;
+
   private connections: Record<string, WebSocket> = {};
 
-  private users: Record<string, { username: string | null; state: Record<string, unknown> }> = {};
+  private users: Record<string, { username: TNullable<string>; state: Record<string, unknown> }> = {};
 
-  public initializeWebSocket() {
-    const wsServer = new WebSocketServer({ port: 8080 });
+  public static getInstance() {
+    if (!this.instance) {
+      this.instance = new WebSocketManager();
+    }
+
+    return this.instance;
+  }
+
+  public initializeWebSocket(server: http.Server): WebSocketServer {
+    const wsServer = new WebSocketServer({ server });
 
     wsServer.on('connection', (ws: WebSocket, request: Request) => {
       const uuid = uuidv4();
@@ -56,8 +69,4 @@ class WebSocketManager {
   }
 }
 
-export function initializeWebSocket() {
-  const manager = new WebSocketManager();
-
-  return manager.initializeWebSocket();
-}
+export const websocketManager = WebSocketManager.getInstance();
