@@ -46,7 +46,7 @@ services:
       - .env.production
     restart: always
     healthcheck:
-      test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" ping | grep PONG']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -72,8 +72,10 @@ services:
 
   server1:
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     build:
       context: ./
       dockerfile: Dockerfile
@@ -86,9 +88,10 @@ services:
     env_file:
       - .env.production
     volumes:
-      - ./logs:/logs
+      - ./logs:/usr/src/app/logs
+      - ./example-swagger.yaml:/usr/src/app/example-swagger.yaml:ro
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:4000/api/v1/health || exit 1']
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:4000/api/v1/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -98,8 +101,10 @@ services:
 
   server2:
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     build:
       context: ./
       dockerfile: Dockerfile
@@ -112,9 +117,10 @@ services:
     env_file:
       - .env.production
     volumes:
-      - ./logs:/logs
+      - ./logs:/usr/src/app/logs
+      - ./example-swagger.yaml:/usr/src/app/example-swagger.yaml:ro
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:4001/api/v1/health || exit 1']
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:4001/api/v1/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -124,8 +130,10 @@ services:
 
   server3:
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     build:
       context: ./
       dockerfile: Dockerfile
@@ -138,12 +146,13 @@ services:
     env_file:
       - .env.production
     volumes:
-      - ./logs:/logs
+      - ./logs:/usr/src/app/logs
+      - ./example-swagger.yaml:/usr/src/app/example-swagger.yaml:ro
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:4002/api/v1/health']
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:4002/api/v1/health || exit 1']
       interval: 10s
       timeout: 5s
-      retries: 2
+      retries: 3
       start_period: 10s
     networks:
       - express-network
@@ -158,9 +167,12 @@ services:
       - ./nginx/ssl/nginx-self.crt:/etc/nginx/ssl/nginx-self.crt
       - ./nginx/ssl/nginx-self.key:/etc/nginx/ssl/nginx-self.key
     depends_on:
-      - server1
-      - server2
-      - server3
+      server1:
+        condition: service_healthy
+      server2:
+        condition: service_healthy
+      server3:
+        condition: service_healthy
     restart: always
     networks:
       - express-network

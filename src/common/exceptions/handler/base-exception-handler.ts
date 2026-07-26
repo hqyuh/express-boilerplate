@@ -10,7 +10,7 @@ class BaseExceptionHandler {
     if (this.isTrustedError(error) && response) {
       this.handleTrustedError(error as BaseException, response);
     } else {
-      this.handleUntrustedError(error as Error, response);
+      this.handleUntrustedError(error, response);
     }
   }
 

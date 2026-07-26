@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable no-console */
 /* eslint-disable max-len */
 import fs from 'fs';
 import type http from 'http';
@@ -10,6 +8,7 @@ import baseExceptionHandler from '@/common/exceptions/handler/base-exception-han
 import TooManyRequestException from '@/common/exceptions/too-many-request-exception';
 import { MsgIds, logger } from '@/common/logger/logger';
 import requestIdMiddleware from '@/common/middlewares/request-id-middleware';
+import responseFinishMiddleware from '@/common/middlewares/response-finish-middleware';
 import { cache } from '@/modules/cache/cache';
 import { pgDatabase } from '@/modules/databases/PgDatabase';
 import { socketIOManager } from '@/modules/ws/socket';
@@ -17,7 +16,14 @@ import { socketIOManager } from '@/modules/ws/socket';
 // import { websocketManager } from '@/modules/ws/websocket';
 import router from '@/routes';
 import cors from 'cors';
-import express, { json, urlencoded, type NextFunction, type Request, type Response } from 'express';
+import express, {
+  json,
+  urlencoded,
+  type ErrorRequestHandler,
+  type Request,
+  type RequestHandler,
+  type Response,
+} from 'express';
 import expressHttpContext from 'express-http-context';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -28,12 +34,16 @@ import YAML from 'yaml';
 const TIME_LIMIT = 15 * 60 * 1000; // 15 minutes
 const REQUEST_LIMIT = 100;
 
+const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  baseExceptionHandler.handleError(err as Error, res);
+};
+
 export class App {
   public app: express.Application;
 
-  public server: http.Server;
+  public server!: http.Server;
 
-  private swaggerDocument: JsonObject;
+  private swaggerDocument!: JsonObject;
 
   constructor() {
     this.app = express();
@@ -77,7 +87,7 @@ export class App {
       console.error('Error loading Swagger document:', error);
 
       throw new Error('Error loading Swagger document');
-      // eslint-disable-next-line unicorn/no-process-exit
+
       // process.exit(1);
     }
   }
@@ -85,19 +95,40 @@ export class App {
   private middlewares() {
     this.app.set('trust proxy', 1);
     this.app.use(cors());
-    this.app.use(helmet());
+    // Helmet defaults break Swagger in the browser:
+    // - upgrade-insecure-requests forces HTTPS on http://localhost:8080
+    // - strict CSP blocks swagger-ui inline bootstrap
+    // - CORP/HSTS also interfere with local HTTP access
+    this.app.use(
+      helmet({
+        contentSecurityPolicy: {
+          useDefaults: true,
+          directives: {
+            'upgrade-insecure-requests': null,
+            'script-src': ["'self'", "'unsafe-inline'"],
+            'style-src': ["'self'", "'unsafe-inline'", 'https:'],
+            'img-src': ["'self'", 'data:'],
+          },
+        },
+        crossOriginEmbedderPolicy: false,
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
+        strictTransportSecurity: false,
+      })
+    );
     this.app.use(json());
     this.app.use(urlencoded({ extended: true }));
-    this.app.use(expressHttpContext.middleware);
+    this.app.use(expressHttpContext.middleware as RequestHandler);
     this.app.use(requestIdMiddleware);
+    this.app.use(responseFinishMiddleware);
     this.app.use(this.createRateLimiter());
-    this.app.use(config.contextPath + '/api-docs', swaggerUI.serve, swaggerUI.setup(this.swaggerDocument));
+    // Yarn docker installs nest a second @types/express under multer; cast keeps both builds green.
+    const swaggerServe = swaggerUI.serve as unknown as RequestHandler[];
+    const swaggerSetup = swaggerUI.setup(this.swaggerDocument) as unknown as RequestHandler;
+    this.app.use(config.contextPath + '/api-docs', ...swaggerServe, swaggerSetup);
   }
 
   private initializeErrorHandle() {
-    this.app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-      baseExceptionHandler.handleError(err, res);
-    });
+    this.app.use(errorHandler);
   }
 
   private routes() {
@@ -105,7 +136,6 @@ export class App {
   }
 
   closeServer() {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (this.server) {
       this.server.close();
     }

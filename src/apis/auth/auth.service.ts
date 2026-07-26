@@ -54,10 +54,7 @@ class AuthService {
       role: userInfo.role,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _password, ...rest } = userInfo;
-
-    return new ResponseLoginDto(rest, accessToken, refreshToken);
+    return new ResponseLoginDto({ username: userInfo.username, role: userInfo.role }, accessToken, refreshToken);
   }
 
   /**

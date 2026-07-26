@@ -1,12 +1,14 @@
-import { Router, type Request, type Response } from 'express';
+import { Router, type RequestHandler } from 'express';
 
 import AuthRouter from './auth.router';
 
 const router: Router = Router();
 
-router.get('/health', (_req: Request, res: Response) => {
+const healthCheck: RequestHandler = (_req, res) => {
   res.status(200).json({ status: 'UP' });
-});
+};
+
+router.get('/health', healthCheck);
 
 router.use('/auth', AuthRouter);
 

@@ -7,9 +7,9 @@ import type { TResponseCustom } from '../interfaces/express';
 
 export const roleMiddleware = (ERoles: string[]) => (req: Request, _res: TResponseCustom, next: NextFunction) => {
   try {
-    const role = req.session.role;
+    const role = req.session?.role;
 
-    if (!ERoles.includes(role)) {
+    if (!role || !ERoles.includes(role)) {
       const parameters = { reason: 'You do not have permission' };
       logger.writeWithParameter(MsgIds.M005005, parameters);
 

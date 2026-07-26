@@ -1,4 +1,3 @@
-/* eslint-disable radix */
 import dotenv from 'dotenv';
 import type { RedisOptions } from 'ioredis';
 import { type DataSourceOptions } from 'typeorm';
@@ -12,7 +11,7 @@ class ConfigService {
       throw new Error(key + ' environment variable does not set');
     }
 
-    return process.env[key] as string;
+    return process.env[key];
   }
 
   get postgresConfig(): DataSourceOptions {

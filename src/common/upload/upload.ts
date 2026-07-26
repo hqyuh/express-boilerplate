@@ -4,7 +4,7 @@ import path from 'path';
 
 import BadRequestException from '@/common/exceptions/bad-request-exception';
 import { MsgIds, logger } from '@/common/logger/logger';
-import type { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import multer from 'multer';
 
 const MAX_COUNT = 10;
@@ -135,8 +135,9 @@ export const uploadMiddleware =
 
     const uploadHandler = multiple ? upload.array(typeFile, MAX_COUNT) : upload.single(typeFile);
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    uploadHandler(req, res, (err: unknown) => {
+    // Cast needed: @types/multer nests a conflicting @types/express-serve-static-core copy.
+
+    (uploadHandler as unknown as RequestHandler)(req, res, ((err: unknown) => {
       if (err instanceof BadRequestException) {
         return next(err);
       }
@@ -174,5 +175,5 @@ export const uploadMiddleware =
       }
 
       next();
-    });
+    }) as NextFunction);
   };

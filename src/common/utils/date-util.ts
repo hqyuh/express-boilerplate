@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable max-len */
 import moment from 'moment';
 
@@ -62,7 +61,6 @@ export class DateUtils {
    * date. If the result is a valid date, it will be returned. Otherwise, null will be returned.
    */
   static addDate(date: Date, numberOfDays: number) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-argument
     return moment(date).add(numberOfDays, EDateUnit.DAY).toDate() || null;
   }
 

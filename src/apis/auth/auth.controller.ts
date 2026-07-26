@@ -1,7 +1,9 @@
 import { authSchema } from '@/apis/auth/auth.schema';
 import EHttpStatusCode from '@/common/constants/http-status-code';
 import BadRequestException from '@/common/exceptions/bad-request-exception';
+import UnauthorizedException from '@/common/exceptions/unauthorized-exception';
 import type { TResponseCustom } from '@/common/interfaces/express';
+import { MsgIds, logger } from '@/common/logger/logger';
 import { SuccessResponse } from '@/common/success-response/success-response';
 import type { NextFunction, Request } from 'express';
 
@@ -18,10 +20,10 @@ class AuthController {
    * @param next The next function.
    */
   async login(req: Request, _res: TResponseCustom, _next: NextFunction) {
-    const { success: isOk, data: schemaData, error } = authSchema.safeParse(req.body);
+    const { success: isOk, data: schemaData, error } = authSchema.safeParse(req.body ?? {});
 
     if (!isOk) {
-      throw new BadRequestException(error.errors);
+      throw new BadRequestException(error.issues);
     }
 
     const data = await AuthService.login(schemaData);
@@ -39,9 +41,15 @@ class AuthController {
    * @param next The next function.
    */
   async getMe(req: Request, _res: TResponseCustom, _next: NextFunction) {
-    const {
-      session: { username },
-    } = req;
+    const username = req.session?.username;
+
+    if (!username) {
+      throw new UnauthorizedException({
+        errorCode: MsgIds.M005002,
+        errorMessage: logger.getMessage(MsgIds.M005002),
+      });
+    }
+
     const data = await AuthService.getMe(username);
 
     return new SuccessResponse({

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import config from '@/common/configs';
 import { MsgIds, logger } from '@/common/logger/logger';
 import Redis from 'ioredis';

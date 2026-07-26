@@ -1,5 +1,5 @@
 export default class CharUtils {
-  static removeEscapeChars = (str: string) => String(str).replaceAll('\r', '');
+  static removeEscapeChars = (str: string) => str.replaceAll('\r', '');
 
   static convertSnakeToCamelCase = (str: string) => {
     let convertedStr = '';
@@ -36,12 +36,10 @@ export default class CharUtils {
     for (const char of str) {
       if (char === '_') {
         isSnake = true;
-        // eslint-disable-next-line sonarjs/no-redundant-jump
-        continue;
-      } else {
-        convertedStr += isSnake === true ? char.toUpperCase() : char.toLowerCase();
-        isSnake = false;
       }
+
+      convertedStr += isSnake ? char.toUpperCase() : char.toLowerCase();
+      isSnake = false;
     }
 
     return convertedStr;

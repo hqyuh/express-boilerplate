@@ -8,7 +8,7 @@ import { MsgIds, logger } from '../logger/logger';
 
 export const authMiddleware = async (req: Request, _res: TResponseCustom, next: NextFunction) => {
   try {
-    const token = req.headers.authorization?.split('Bearer ')[1];
+    const token = req.headers.authorization?.split('Bearer ', 2)[1];
 
     if (!token) {
       const parameters = { reason: 'The token is missing' };

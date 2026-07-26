@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { MsgIds, logger } from '@/common/logger/logger';
 import dotenv from 'dotenv';
 

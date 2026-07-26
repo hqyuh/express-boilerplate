@@ -1,58 +1,53 @@
 # Stage 1: install dependencies
-FROM node:20-alpine AS development
+FROM node:22-alpine AS development
 
-# Set working directory
 WORKDIR /usr/src/app
 
-# Install and cache app dependencies development
-COPY --chown=node:node package.json ./
-COPY --chown=node:node yarn.lock ./
+RUN corepack enable
 
-# Install yarn
-RUN yarn install
+ENV HUSKY=0
 
-# Copy existing application directory contents
+COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --config.confirmModulesPurge=false
+
 COPY --chown=node:node . .
 
 USER node
 
-
 # Stage 2: build
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
-# Set working directory
 WORKDIR /usr/src/app
 
-# Install and cache app dependencies production
-COPY --chown=node:node package.json ./
-COPY --chown=node:node yarn.lock ./
+RUN corepack enable
 
-# Use node_modules at development to build dist folder
+ENV HUSKY=0
+
+COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
-
-# Copy existing application directory contents
 COPY --chown=node:node . .
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
-# Build source
-RUN yarn build
-
-# Install production and clear cache app dependencies
-RUN yarn install --frozen-lockfile --production && yarn cache clean
+RUN pnpm run build
+RUN pnpm prune --prod --ignore-scripts --config.confirmModulesPurge=false
 
 USER node
 
 # Stage 3: run
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
-# Install curl
-RUN apk update && apk add curl
+RUN apk update && apk add --no-cache curl
+
+WORKDIR /usr/src/app
 
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/package.json ./package.json
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/example-swagger.yaml ./example-swagger.yaml
 
-# Start run in production environment
-CMD [ "node", "-r", "module-alias/register", "/dist/server.js" ]
+RUN mkdir -p /usr/src/app/logs && chown -R node:node /usr/src/app
+
+USER node
+
+CMD ["node", "-r", "module-alias/register", "dist/server.js"]

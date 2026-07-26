@@ -1,9 +1,9 @@
 /* eslint-disable max-len */
 /* eslint-disable no-console */
+import { randomUUID } from 'crypto';
 import type http from 'http';
 
 import type { TNullable } from '@/common/interfaces/entity-type';
-import { v4 as uuidv4 } from 'uuid';
 import { Server as WebSocketServer, type RawData, type WebSocket } from 'ws';
 
 class WebSocketManager {
@@ -25,7 +25,7 @@ class WebSocketManager {
     const wsServer = new WebSocketServer({ server });
 
     wsServer.on('connection', (ws: WebSocket, request: Request) => {
-      const uuid = uuidv4();
+      const uuid = randomUUID();
       const urlParams = new URLSearchParams(request.url.slice(1));
       const username = urlParams.get('username');
 
@@ -41,7 +41,6 @@ class WebSocketManager {
 
   private handleMessage(bytes: RawData, uuid: string): void {
     const message = JSON.parse(
-      // eslint-disable-next-line max-len
       bytes instanceof Buffer ? bytes.toString('utf8') : Buffer.from(bytes as ArrayBuffer).toString('utf8')
     );
     const user = this.users[uuid];

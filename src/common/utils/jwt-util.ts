@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 /* eslint-disable max-len */
 import type { ITokenDto } from '@/apis/auth/dto/token.dto';
 import type { TStringValue } from '@/common/types/string-value';
@@ -49,10 +49,10 @@ export default class JwtUtils {
     const { jWTSecretKey, errorOptions, error: errorCallback } = verifyOptions;
 
     return new Promise((resolve, reject) => {
-      jwt.verify(token, jWTSecretKey as jwt.Secret, (error: Error | null, decoded?: Record<K, V>) => {
+      jwt.verify(token, jWTSecretKey, (error, decoded) => {
         if (error) {
           if (errorCallback) {
-            errorCallback(error, decoded);
+            errorCallback(error, decoded as Record<K, V> | undefined);
           }
 
           reject(errorOptions ? new Error(JSON.stringify(errorOptions)) : error);

@@ -53,10 +53,10 @@ export default class Files {
         if (!i) {
           headers = row.split(',');
 
-          return null;
+          return false;
         }
 
-        return row.trim().length;
+        return row.trim().length > 0;
       })
       .map((row) => {
         const commaSplittedRows = row.split(',');

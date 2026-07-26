@@ -19,9 +19,12 @@ export interface ISession {
   role: string;
 }
 
-declare module 'express' {
-  interface Request {
-    session: ISession;
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      session?: ISession;
+    }
   }
 }
 

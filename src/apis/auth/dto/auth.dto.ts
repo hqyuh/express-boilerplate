@@ -2,9 +2,9 @@ import type { User } from '@/modules/databases/entities/user';
 
 // RequestLoginDto represents the data required for a login request
 export class RequestLoginDto {
-  username: string;
+  username!: string;
 
-  password: string;
+  password!: string;
 }
 
 // ResponseLoginDto represents the data returned after a successful login

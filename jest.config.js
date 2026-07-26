@@ -1,6 +1,5 @@
-import type { Config } from '@jest/types';
-
-const config: Config.InitialOptions = {
+/** @type {import('jest').Config} */
+const config = {
   collectCoverage: true,
   collectCoverageFrom: ['**/modules/**/*.ts'],
   moduleDirectories: ['node_modules', __dirname],
@@ -18,4 +17,4 @@ const config: Config.InitialOptions = {
   testTimeout: 30_000,
 };
 
-export default config;
+module.exports = config;

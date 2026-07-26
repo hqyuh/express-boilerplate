@@ -1,8 +1,9 @@
 {
-  "httpStatusCode": 200,
-  "data": {
+  "metadata": {
     "user": {
       "username": "user"
     }
-  }
+  },
+  "status": 200,
+  "messages": "ok"
 }

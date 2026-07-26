@@ -49,6 +49,7 @@ export enum MsgIds {
   M0030010 = 'M003-0010',
   M0030011 = 'M003-0011',
   M0030012 = 'M003-0012',
+  M0030013 = 'M003-0013',
 
   // Login
   M005001 = 'M005-001',
@@ -87,6 +88,7 @@ const msgInfo = new Map<MsgIds, [TMsgLevelType, string]>([
   [MsgIds.M0030010, [MsgLevel.ERROR, 'File too large. Maximum allowed size is {type}MB.']],
   [MsgIds.M0030011, [MsgLevel.ERROR, 'Unexpected file field']],
   [MsgIds.M0030012, [MsgLevel.ERROR, 'File only! (pdf, xlsx, docx)']],
+  [MsgIds.M0030013, [MsgLevel.INFO, 'Request completed']],
 
   // Login
   [MsgIds.M005001, [MsgLevel.ERROR, 'The username or password is incorrect']],
@@ -160,11 +162,12 @@ class WinstonLogger {
     const { timestamp, label, level, msgId, message, parameters, error } = info;
     const parserError =
       error &&
-      Object.getOwnPropertyNames(error).reduce(
-        (acc: Record<string, string>, key: string) => ({
-          ...acc,
-          [key]: error[key],
-        }),
+      Object.getOwnPropertyNames(error).reduce<Record<string, unknown>>(
+        (acc, key) => {
+          acc[key] = (error as Record<string, unknown>)[key];
+
+          return acc;
+        },
         { name: error }
       );
 

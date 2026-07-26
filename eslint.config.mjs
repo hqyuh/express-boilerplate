@@ -1,0 +1,197 @@
+import eslint from '@eslint/js';
+import prettier from 'eslint-plugin-prettier/recommended';
+import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      'logs/**',
+      'eslint.config.mjs',
+      '.eslintrc.js',
+      'src/__tests__/**',
+    ],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  prettier,
+  sonarjs.configs.recommended,
+  unicorn.configs.recommended,
+  {
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      'prettier/prettier': [
+        'warn',
+        {
+          arrowParens: 'always',
+          bracketSameLine: false,
+          bracketSpacing: true,
+          printWidth: 120,
+          semi: true,
+          singleQuote: true,
+          tabWidth: 2,
+          trailingComma: 'es5',
+          plugins: ['@ianvs/prettier-plugin-sort-imports'],
+          importOrder: ['<BUILTIN_MODULES>', '', '<THIRD_PARTY_MODULES>', '', '^@/', '', '^[.]'],
+          importOrderParserPlugins: ['typescript', 'decorators-legacy'],
+          importOrderTypeScriptVersion: '5.0.0',
+          importOrderCaseSensitive: true,
+        },
+      ],
+      'sonarjs/no-duplicate-string': 'off',
+      'sonarjs/slow-regex': 'off',
+      'sonarjs/no-invalid-await': 'off',
+      'unicorn/filename-case': [
+        'error',
+        {
+          cases: {
+            kebabCase: true,
+            pascalCase: true,
+          },
+        },
+      ],
+      'unicorn/prefer-top-level-await': 'off',
+      'unicorn/prevent-abbreviations': 'off',
+      'unicorn/no-null': 'off',
+      'unicorn/no-static-only-class': 'off',
+      'unicorn/prefer-module': 'off',
+      'unicorn/prefer-node-protocol': 'off',
+      'unicorn/no-top-level-side-effects': 'off',
+      'unicorn/name-replacements': 'off',
+      'unicorn/consistent-class-member-order': 'off',
+      'unicorn/prefer-await': 'off',
+      'unicorn/prefer-continue': 'off',
+      'unicorn/prefer-object-iterable-methods': 'off',
+      'unicorn/no-array-sort': 'off',
+      'unicorn/class-reference-in-static-methods': 'off',
+      'unicorn/no-multiple-promise-resolver-calls': 'off',
+      'unicorn/prefer-then-catch': 'off',
+      'unicorn/no-declarations-before-early-exit': 'off',
+      'unicorn/no-unsafe-property-key': 'off',
+      'sonarjs/no-nested-assignment': 'off',
+      'sonarjs/null-dereference': 'off',
+      'sonarjs/public-static-readonly': 'off',
+      'sonarjs/deprecation': 'off',
+      'sonarjs/super-linear-regex': 'off',
+      'sonarjs/argument-type': 'off',
+      'sonarjs/no-dead-store': 'off',
+      'sonarjs/function-return-type': 'off',
+      'unicorn/default-export-style': 'off',
+      'unicorn/no-computed-property-existence-check': 'off',
+      'unicorn/prefer-simple-condition-first': 'off',
+      'unicorn/no-useless-template-literals': 'off',
+      'unicorn/consistent-boolean-name': 'off',
+      'no-useless-assignment': 'off',
+      'preserve-caught-error': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', vars: 'all', args: 'after-used' }],
+      '@typescript-eslint/explicit-member-accessibility': 'off',
+      '@typescript-eslint/member-ordering': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'default',
+          format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+          filter: {
+            regex: '^_.*$',
+            match: false,
+          },
+        },
+        {
+          selector: 'interface',
+          format: ['PascalCase'],
+          prefix: ['I'],
+        },
+        {
+          selector: 'typeLike',
+          format: ['PascalCase'],
+          prefix: ['T'],
+        },
+        {
+          selector: 'typeParameter',
+          format: ['PascalCase'],
+          custom: {
+            regex: '^[A-Z]$',
+            match: true,
+          },
+        },
+        {
+          selector: 'class',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'enum',
+          format: ['PascalCase'],
+          prefix: ['E'],
+        },
+        {
+          selector: 'memberLike',
+          modifiers: ['private'],
+          format: ['camelCase'],
+          leadingUnderscore: 'forbid',
+        },
+        {
+          selector: 'variable',
+          types: ['boolean'],
+          format: ['PascalCase'],
+          prefix: ['is', 'should', 'has', 'can', 'did', 'will'],
+        },
+        {
+          selector: 'property',
+          format: null,
+          modifiers: ['requiresQuotes'],
+        },
+      ],
+      'no-await-in-loop': 'error',
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: 'return' },
+        { blankLine: 'always', prev: '*', next: 'try' },
+        { blankLine: 'always', prev: 'try', next: '*' },
+        { blankLine: 'always', prev: '*', next: 'block-like' },
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+        { blankLine: 'always', prev: '*', next: 'throw' },
+        { blankLine: 'always', prev: 'var', next: '*' },
+      ],
+      'max-len': ['error', { code: 100 }],
+      'no-console': [
+        'warn',
+        {
+          allow: ['info', 'warn', 'error', 'dir', 'table'],
+        },
+      ],
+      'max-classes-per-file': ['error', 2],
+    },
+  },
+  {
+    files: ['**/*.ts'],
+  }
+);

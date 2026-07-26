@@ -1,9 +1,7 @@
 {
   "httpStatusCode": 400,
-  "errors": [
-    {
-      "errorCode": "M005-001",
-      "errorMessage": "The username or password is incorrect"
-    }
-  ]
+  "errors": {
+    "errorCode": "M005-001",
+    "errorMessage": "The username or password is incorrect"
+  }
 }

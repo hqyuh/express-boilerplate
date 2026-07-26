@@ -1,5 +1,3 @@
-/* eslint-disable unicorn/no-process-exit */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import path from 'path';
 
 import config from '@/common/configs';
@@ -12,7 +10,7 @@ export default class PgDatabase {
     entities: [path.resolve(__dirname, 'entities/*.{ts,js}')],
   });
 
-  connection: DataSource;
+  connection!: DataSource;
 
   async connect(): Promise<DataSource> {
     try {
@@ -21,7 +19,8 @@ export default class PgDatabase {
 
       return this.connection;
     } catch (error) {
-      logger.writeWithError(MsgIds.M002002, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.writeWithError(MsgIds.M002002, err);
 
       throw error;
     }
@@ -34,7 +33,8 @@ export default class PgDatabase {
       await this.dataSource.query(`TRUNCATE ${tableNames} CASCADE;`);
       logger.write(MsgIds.M002004);
     } catch (error) {
-      logger.writeWithError(MsgIds.M002003, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.writeWithError(MsgIds.M002003, err);
 
       throw error;
     }
