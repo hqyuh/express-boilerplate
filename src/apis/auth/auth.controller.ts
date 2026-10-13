@@ -1,11 +1,11 @@
+import type { NextFunction, Request } from 'express';
 import { authSchema } from '@/apis/auth/auth.schema';
 import EHttpStatusCode from '@/common/constants/http-status-code';
 import BadRequestException from '@/common/exceptions/bad-request-exception';
 import UnauthorizedException from '@/common/exceptions/unauthorized-exception';
 import type { TResponseCustom } from '@/common/interfaces/express';
-import { MsgIds, logger } from '@/common/logger/logger';
+import { logger, MsgIds } from '@/common/logger/logger';
 import { SuccessResponse } from '@/common/success-response/success-response';
-import type { NextFunction, Request } from 'express';
 
 import AuthService from './auth.service';
 

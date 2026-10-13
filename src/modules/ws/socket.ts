@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable no-console */
-import type http from 'http';
-
-import type { TNullable } from '@/common/interfaces/entity-type';
+import type http from 'node:http';
 import { Server, type Socket } from 'socket.io';
+import type { TNullable } from '@/common/interfaces/entity-type';
 
 class SocketIOManager {
   private static instance: TNullable<SocketIOManager> = null;
@@ -13,11 +10,11 @@ class SocketIOManager {
   private groups: Map<string, Set<Socket>> = new Map();
 
   public static getInstance(): SocketIOManager {
-    if (!this.instance) {
-      this.instance = new SocketIOManager();
+    if (!SocketIOManager.instance) {
+      SocketIOManager.instance = new SocketIOManager();
     }
 
-    return this.instance;
+    return SocketIOManager.instance;
   }
 
   public initializeSocketIO(server: http.Server): void {

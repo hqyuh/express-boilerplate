@@ -1,6 +1,5 @@
-/* eslint-disable max-len */
-import { MsgIds, logger } from '@/common/logger/logger';
 import type { NextFunction, Request } from 'express';
+import { logger, MsgIds } from '@/common/logger/logger';
 
 import ForbiddenException from '../exceptions/forbidden-exception';
 import type { TResponseCustom } from '../interfaces/express';

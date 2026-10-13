@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { NextFunction, Request, Response } from 'express';
 import EHttpStatusCode from '@/common/constants/http-status-code';
 import { generateCacheKeyFromReq } from '@/common/utils/generate-cache.util';
 import cacheService from '@/modules/cache/cache.service';
-import type { NextFunction, Request, Response } from 'express';
 
 const CACHE_PREFIX = 'hq_huy_cache';
 
@@ -21,7 +19,6 @@ export const cacheMiddleware =
         return res.status(EHttpStatusCode.OK).json(data);
       }
 
-      // eslint-disable-next-line no-console
       console.log(`Cache miss for ${cacheKey}`);
 
       const originalSend = res.send.bind(res);

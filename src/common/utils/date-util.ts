@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import moment from 'moment';
 
 import { EDateUnit } from '../constants/date-unit';
@@ -12,7 +11,7 @@ export class DateUtils {
     return new Date(now.getTime() - offsetMs);
   };
 
-  static dateTimeWithTzPostgres = (date: Date) => date.toISOString().slice(0, 19).replace('T', ' ') + '+00';
+  static dateTimeWithTzPostgres = (date: Date) => `${date.toISOString().slice(0, 19).replace('T', ' ')}+00`;
 
   static dateWithTz = (date: Date) => {
     const offsetMs = date.getTimezoneOffset() * 60 * 1000;

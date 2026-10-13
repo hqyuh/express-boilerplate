@@ -1,13 +1,13 @@
-import path from 'path';
-
-import config from '@/common/configs';
-import { MsgIds, logger } from '@/common/logger/logger';
 import { DataSource } from 'typeorm';
+import config from '@/common/configs';
+import { logger, MsgIds } from '@/common/logger/logger';
+
+import { entities } from './entities';
 
 export default class PgDatabase {
   readonly dataSource = new DataSource({
     ...config.postgresConfig,
-    entities: [path.resolve(__dirname, 'entities/*.{ts,js}')],
+    entities,
   });
 
   connection!: DataSource;

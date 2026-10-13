@@ -1,10 +1,10 @@
-import JwtUtils from '@/common/utils/jwt-util';
 import type { NextFunction, Request } from 'express';
+import JwtUtils from '@/common/utils/jwt-util';
 
 import config from '../configs';
 import UnauthorizedException from '../exceptions/unauthorized-exception';
 import type { ISession, TResponseCustom } from '../interfaces/express';
-import { MsgIds, logger } from '../logger/logger';
+import { logger, MsgIds } from '../logger/logger';
 
 export const authMiddleware = async (req: Request, _res: TResponseCustom, next: NextFunction) => {
   try {

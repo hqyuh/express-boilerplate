@@ -1,10 +1,7 @@
-/* eslint-disable max-len */
-/* eslint-disable no-console */
-import { randomUUID } from 'crypto';
-import type http from 'http';
-
+import { randomUUID } from 'node:crypto';
+import type http from 'node:http';
+import { type RawData, type WebSocket, Server as WebSocketServer } from 'ws';
 import type { TNullable } from '@/common/interfaces/entity-type';
-import { Server as WebSocketServer, type RawData, type WebSocket } from 'ws';
 
 class WebSocketManager {
   private static instance: TNullable<WebSocketManager> = null;
@@ -14,11 +11,11 @@ class WebSocketManager {
   private users: Record<string, { username: TNullable<string>; state: Record<string, unknown> }> = {};
 
   public static getInstance() {
-    if (!this.instance) {
-      this.instance = new WebSocketManager();
+    if (!WebSocketManager.instance) {
+      WebSocketManager.instance = new WebSocketManager();
     }
 
-    return this.instance;
+    return WebSocketManager.instance;
   }
 
   public initializeWebSocket(server: http.Server): WebSocketServer {

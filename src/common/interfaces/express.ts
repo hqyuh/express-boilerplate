@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Response } from 'express';
-import type { ZodIssue } from 'zod';
+import type { $ZodIssue } from 'zod/v4/core';
 
 export interface IErrorDetail {
   errorCode: string;
@@ -11,7 +9,7 @@ export interface IErrorDetail {
 export interface IBodyResponse {
   httpStatusCode: number;
   data?: any;
-  errors?: IErrorDetail | ZodIssue[];
+  errors?: IErrorDetail | $ZodIssue[];
 }
 
 export interface ISession {
@@ -20,7 +18,6 @@ export interface ISession {
 }
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       session?: ISession;

@@ -1,9 +1,6 @@
-/* eslint-disable max-len */
-/* eslint-disable no-console */
-import type http from 'http';
-
-import type { TNullable } from '@/common/interfaces/entity-type';
+import type http from 'node:http';
 import { WebSocket, Server as WebSocketServer } from 'ws';
+import type { TNullable } from '@/common/interfaces/entity-type';
 
 class WebSocketManager {
   private static instance: TNullable<WebSocketManager> = null;

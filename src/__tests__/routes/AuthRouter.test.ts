@@ -1,13 +1,11 @@
-/* eslint-disable max-len */
-/// <reference types="jest" />
-
+import { decode } from 'jsonwebtoken';
+import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { ResponseLoginDto } from '@/apis/auth/dto/auth.dto';
 import { App } from '@/app';
 import config from '@/common/configs';
 import { cache } from '@/modules/cache/cache';
 import PgDatabase from '@/modules/databases/PgDatabase';
-import { decode } from 'jsonwebtoken';
-import request from 'supertest';
 
 import account from '../mocks/account.json';
 import TC_LOGIN_001 from '../mocks/auth/login/TC_001.json';
@@ -28,12 +26,18 @@ describe('Auth Routes', () => {
 
   beforeAll(async () => {
     await dataSource.connect();
+    await cache.connect();
   });
 
   afterAll(async () => {
-    await dataSource.connection.destroy();
-    await cache.destroy();
-    server.closeServer();
+    try {
+      if (dataSource.connection?.isInitialized) {
+        await dataSource.connection.destroy();
+      }
+    } finally {
+      await cache.destroy().catch(() => undefined);
+      server.closeServer();
+    }
   });
 
   describe('Login', () => {

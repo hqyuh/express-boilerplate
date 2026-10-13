@@ -1,12 +1,11 @@
-/* eslint-disable max-len */
 import BadRequestException from '@/common/exceptions/bad-request-exception';
 import UnauthorizedException from '@/common/exceptions/unauthorized-exception';
-import { MsgIds, logger } from '@/common/logger/logger';
+import { logger, MsgIds } from '@/common/logger/logger';
 import JwtUtils from '@/common/utils/jwt-util';
 import { PasswordUtils } from '@/common/utils/password-util';
 import { User } from '@/modules/databases/entities/user';
 
-import { ResponseLoginDto, type RequestLoginDto } from './dto/auth.dto';
+import { type RequestLoginDto, ResponseLoginDto } from './dto/auth.dto';
 
 class AuthService {
   /**

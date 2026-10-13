@@ -3,12 +3,12 @@ FROM node:22-alpine AS development
 
 WORKDIR /usr/src/app
 
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.0.9 --activate
 
 ENV HUSKY=0
 
 COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --config.confirmModulesPurge=false
+RUN pnpm install --frozen-lockfile --config.confirmModulesPurge=false --config.minimumReleaseAge=0
 
 COPY --chown=node:node . .
 
@@ -19,7 +19,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /usr/src/app
 
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.0.9 --activate
 
 ENV HUSKY=0
 

@@ -43,64 +43,40 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  EHttpStatusCode:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      accessToken:
-                        type: string
-                        example: your_access_token
-                      user:
-                        type: object
-                        properties:
-                          username:
-                            type: string
-                            example: user
-                          role:
-                            type: string
-                            example: admin
+                $ref: '#/components/schemas/LoginSuccessResponse'
         '400':
-          description: Invalid input
+          description: Invalid credentials or validation error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  httpStatusCode:
-                    type: integer
-                    example: 400
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: string
-                          example: too_small
-                        minimum:
-                          type: integer
-                          example: 1
-                        type:
-                          type: string
-                          example: string
-                        inclusive:
-                          type: boolean
-                          example: true
-                        exact:
-                          type: boolean
-                          example: false
-                        message:
-                          type: string
-                          example: Username cannot be empty
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                invalidCredentials:
+                  summary: Wrong username or password
+                  value:
+                    httpStatusCode: 400
+                    errors:
+                      errorCode: M005-001
+                      errorMessage: The username or password is incorrect
+                validationError:
+                  summary: Empty username/password
+                  value:
+                    httpStatusCode: 400
+                    errors:
+                      - code: too_small
+                        minimum: 1
+                        type: string
+                        inclusive: true
+                        exact: false
+                        message: Username cannot be empty
                         path:
-                          type: array
-                          items:
-                            type: string
-                            example: username
+                          - username
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /auth/me:
     get:
       tags:
@@ -108,31 +84,88 @@ paths:
       summary: Get current user
       description: Get current user
       operationId: getMe
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Get current user success
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  EHttpStatusCode:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        type: object
-                        properties:
-                          username:
-                            type: string
-                            example: user
-                          role:
-                            type: string
-                            example: admin
+                $ref: '#/components/schemas/SessionSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /upload:
+    post:
+      tags:
+        - upload
+      summary: Upload a PDF file
+      description: Upload a single PDF file (max 10MB). Field name must be `file`.
+      operationId: uploadFile
       security:
         - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF file to upload
+      responses:
+        '200':
+          description: Upload success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadSuccessResponse'
+        '400':
+          description: Invalid/missing file, wrong type, or file too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingFile:
+                  summary: No file uploaded
+                  value:
+                    httpStatusCode: 400
+                    errors:
+                      errorCode: M003-0011
+                      errorMessage: Unexpected file field
+                invalidType:
+                  summary: Not a PDF
+                  value:
+                    httpStatusCode: 400
+                    errors:
+                      errorCode: M003-0012
+                      errorMessage: File only! (pdf, xlsx, docx)
+                fileTooLarge:
+                  summary: Exceeds 10MB
+                  value:
+                    httpStatusCode: 400
+                    errors:
+                      errorCode: M003-0010
+                      errorMessage: File too large. Maximum allowed size is {type}MB.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
     UserLogin:
@@ -147,6 +180,168 @@ components:
         password:
           type: string
           example: 123456
+    ErrorDetail:
+      type: object
+      required:
+        - errorCode
+        - errorMessage
+      properties:
+        errorCode:
+          type: string
+          example: M005-002
+        errorMessage:
+          type: string
+          example: Not authenticated
+    ErrorResponse:
+      type: object
+      required:
+        - httpStatusCode
+        - errors
+      properties:
+        httpStatusCode:
+          type: integer
+          example: 400
+        errors:
+          $ref: '#/components/schemas/ErrorDetail'
+    ValidationErrorResponse:
+      type: object
+      required:
+        - httpStatusCode
+        - errors
+      properties:
+        httpStatusCode:
+          type: integer
+          example: 400
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: too_small
+              message:
+                type: string
+                example: Username cannot be empty
+              path:
+                type: array
+                items:
+                  type: string
+                  example: username
+    LoginSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        messages:
+          type: string
+          example: ok
+        metadata:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              example: your_access_token
+            refreshToken:
+              type: string
+              example: your_refresh_token
+            user:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: user
+                role:
+                  type: string
+                  example: admin
+    SessionSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        messages:
+          type: string
+          example: ok
+        metadata:
+          type: object
+          properties:
+            username:
+              type: string
+              example: user
+    UploadSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        messages:
+          type: string
+          example: ok
+        metadata:
+          type: object
+          properties:
+            originalName:
+              type: string
+              example: document.pdf
+            filename:
+              type: string
+              example: 1710000000000-document.pdf
+            mimetype:
+              type: string
+              example: application/pdf
+            size:
+              type: integer
+              example: 12345
+            path:
+              type: string
+              example: /usr/src/app/uploads/1710000000000-document.pdf
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            httpStatusCode: 401
+            errors:
+              errorCode: M005-002
+              errorMessage: Not authenticated
+    Forbidden:
+      description: Authenticated but role is not allowed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            httpStatusCode: 403
+            errors:
+              errorCode: M005-005
+              errorMessage: You do not have permission
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            httpStatusCode: 429
+            errors:
+              errorCode: M003-005
+              errorMessage: Too many requests from this IP, please try again after 15 minutes
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            httpStatusCode: 500
+            errors:
+              errorCode: M003-003
+              errorMessage: The server has encountered an unexpected error
   securitySchemes:
     BearerAuth:
       type: http

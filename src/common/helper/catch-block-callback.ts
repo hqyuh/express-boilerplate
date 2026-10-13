@@ -1,5 +1,5 @@
-import type { SuccessResponse } from '@/common/success-response/success-response';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { SuccessResponse } from '@/common/success-response/success-response';
 
 type THandler<T> = (
   req: Request,

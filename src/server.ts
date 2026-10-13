@@ -1,5 +1,5 @@
-import { MsgIds, logger } from '@/common/logger/logger';
 import dotenv from 'dotenv';
+import { logger, MsgIds } from '@/common/logger/logger';
 
 import createInstance from './app';
 

@@ -1,9 +1,9 @@
-/* eslint-disable unicorn/no-array-reduce */
-export const groupBy = <T>(array: T[], property: string): Record<string, T[]> =>
-  array.reduce(
-    (grouped, element) => ({
-      ...grouped,
-      [element[property]]: [...(grouped[element[property]] || []), element],
-    }),
-    {}
-  );
+export const groupBy = <T>(array: T[], property: keyof T & string): Record<string, T[]> =>
+  array.reduce<Record<string, T[]>>((grouped, element) => {
+    const key = String(element[property]);
+    const bucket = grouped[key] ?? [];
+    bucket.push(element);
+    grouped[key] = bucket;
+
+    return grouped;
+  }, {});

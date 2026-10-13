@@ -1,6 +1,6 @@
-import { MsgIds, logger } from '@/common/logger/logger';
 import type { RequestHandler } from 'express';
 import expressHttpContext from 'express-http-context';
+import { logger, MsgIds } from '@/common/logger/logger';
 
 /**
  * Registers a listener that runs after the response has been sent to the client.

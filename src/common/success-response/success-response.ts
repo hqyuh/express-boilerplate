@@ -13,7 +13,6 @@ export class SuccessResponse<T> {
 
   public messages: string;
 
-  // eslint-disable-next-line max-len
   constructor({ metadata, status = EHttpStatusCode.OK, message = 'ok' }: ISuccessResponsePayload<T>) {
     this.messages = message;
     this.status = status;

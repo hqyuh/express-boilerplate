@@ -1,17 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable max-len */
+import * as jwt from 'jsonwebtoken';
+import type { $ZodIssue } from 'zod/v4/core';
 import type { ITokenDto } from '@/apis/auth/dto/token.dto';
 import type { TStringValue } from '@/common/types/string-value';
-import * as jwt from 'jsonwebtoken';
-import type { ZodIssue } from 'zod';
 
 import config from '../configs';
 import type { IErrorDetail } from '../interfaces/express';
 
 interface IVerifyOptions<K extends string = string, V = any> {
   jWTSecretKey: jwt.Secret | jwt.PublicKey;
-  errorOptions?: IErrorDetail | ZodIssue[];
+  errorOptions?: IErrorDetail | $ZodIssue[];
   error?: (error: Error | null, decoded?: Record<K, V>) => void;
 }
 
@@ -71,10 +68,10 @@ export default class JwtUtils {
    */
   static async generateToken(payload: Record<string, any>): Promise<ITokenDto> {
     const [accessToken, refreshToken] = await Promise.all([
-      this.sign(payload, config.accessTokenSecretKey, {
+      JwtUtils.sign(payload, config.accessTokenSecretKey, {
         expiresIn: config.accessTokenExpiredTime as TStringValue,
       }),
-      this.sign(payload, config.refreshTokenSecretKey, {
+      JwtUtils.sign(payload, config.refreshTokenSecretKey, {
         expiresIn: config.refreshTokenExpiredTime as TStringValue,
       }),
     ]);

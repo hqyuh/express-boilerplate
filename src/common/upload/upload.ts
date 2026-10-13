@@ -1,28 +1,59 @@
-/* eslint-disable max-len */
-import fs from 'fs';
-import path from 'path';
-
-import BadRequestException from '@/common/exceptions/bad-request-exception';
-import { MsgIds, logger } from '@/common/logger/logger';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import multer from 'multer';
+import BadRequestException from '@/common/exceptions/bad-request-exception';
+import { logger, MsgIds } from '@/common/logger/logger';
 
 const MAX_COUNT = 10;
 
-const uploadPath = path.join(__dirname, '../../uploads');
+export const uploadPath = path.resolve(process.cwd(), 'uploads');
 
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
 }
 
-const storage = multer.diskStorage({
-  destination(_req, _file, cb) {
-    cb(null, uploadPath);
+/**
+ * Custom multer storage: pipe the incoming file stream straight to disk.
+ * Avoids buffering the whole file in memory.
+ */
+const streamingStorage: multer.StorageEngine = {
+  _handleFile(_req, file, cb) {
+    const filename = `${Date.now()}-${file.originalname}`;
+    const filepath = path.join(uploadPath, filename);
+    const writeStream = fs.createWriteStream(filepath);
+    let size = 0;
+
+    file.stream.on('data', (chunk: Buffer) => {
+      size += chunk.length;
+    });
+
+    file.stream.pipe(writeStream);
+
+    writeStream.on('error', (error) => {
+      file.stream.destroy();
+      fs.unlink(filepath, () => cb(error));
+    });
+
+    file.stream.on('error', (error) => {
+      writeStream.destroy();
+      fs.unlink(filepath, () => cb(error));
+    });
+
+    writeStream.on('finish', () => {
+      cb(null, {
+        destination: uploadPath,
+        filename,
+        path: filepath,
+        size,
+      });
+    });
   },
-  filename(_req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
+
+  _removeFile(_req, file, cb) {
+    fs.unlink(file.path, (error) => cb(error));
   },
-});
+};
 
 const validateFile = (
   file: Express.Multer.File,
@@ -30,27 +61,23 @@ const validateFile = (
   cb: multer.FileFilterCallback
 ) => {
   let allowedTypes: RegExp;
-  let isMimetypeValid: boolean;
   let errorCode = MsgIds.M0030011;
 
   switch (fileType) {
     case 'image': {
       allowedTypes = /jpeg|jpg|png|gif/;
-      isMimetypeValid = file.mimetype.startsWith('image/');
       errorCode = MsgIds.M003007;
       break;
     }
 
     case 'video': {
       allowedTypes = /mp4|avi|mov|mkv|wmv/;
-      isMimetypeValid = file.mimetype.startsWith('video/');
       errorCode = MsgIds.M003008;
       break;
     }
 
     case 'file': {
       allowedTypes = /pdf/;
-      isMimetypeValid = file.mimetype === 'application/pdf';
       errorCode = MsgIds.M0030012;
       break;
     }
@@ -66,40 +93,28 @@ const validateFile = (
   }
 
   const isExtnameValid = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  isMimetypeValid = allowedTypes.test(file.mimetype);
+  const isMimetypeValid = allowedTypes.test(file.mimetype);
 
   if (isExtnameValid && isMimetypeValid) {
     return cb(null, true);
   }
 
-  const error = new BadRequestException({
-    errorCode,
-    errorMessage: logger.getMessage(errorCode),
-  });
-
-  cb(error);
+  cb(
+    new BadRequestException({
+      errorCode,
+      errorMessage: logger.getMessage(errorCode),
+    })
+  );
 };
 
 /**
- * Middleware for handling file uploads using multer.
+ * Middleware for handling streamed file uploads using multer.
  *
- * @param typeFile - The type of file to be uploaded. Can be 'image', 'video', or 'pdf'.
- * @param multiple - A boolean indicating whether multiple files should be uploaded. Defaults to false.
- * @returns A middleware function to handle the file upload.
- *
- * The middleware sets the maximum file size based on the type of file:
- * - 'image': 5 MB
- * - 'video': 500 MB
- * - 'pdf': 10 MB
- *
- * The middleware uses multer to handle the file upload and sets the storage, limits, and file filter options.
- * If `multiple` is true, it allows multiple files to be uploaded; otherwise, it allows only a single file.
- *
- * If an error occurs during the upload, the middleware handles specific multer errors:
- * - `LIMIT_FILE_SIZE`: File size exceeds the limit.
- * - `LIMIT_UNEXPECTED_FILE`: Unexpected file type.
- *
- * In case of an error, it passes a `BadRequestException` to the next middleware with an appropriate error code and message.
+ * Incoming multipart file bytes are piped to disk via `createWriteStream`
+ * (no full-file memory buffer). Limits:
+ * - image: 5 MB
+ * - video: 500 MB
+ * - file (pdf): 10 MB
  */
 export const uploadMiddleware =
   (typeFile: 'image' | 'video' | 'file', multiple = false) =>
@@ -128,14 +143,12 @@ export const uploadMiddleware =
     }
 
     const upload = multer({
-      storage,
+      storage: streamingStorage,
       limits: { fileSize },
       fileFilter: (_request, file, cb) => validateFile(file, typeFile, cb),
     });
 
     const uploadHandler = multiple ? upload.array(typeFile, MAX_COUNT) : upload.single(typeFile);
-
-    // Cast needed: @types/multer nests a conflicting @types/express-serve-static-core copy.
 
     (uploadHandler as unknown as RequestHandler)(req, res, ((err: unknown) => {
       if (err instanceof BadRequestException) {
@@ -150,14 +163,12 @@ export const uploadMiddleware =
           case 'LIMIT_FILE_SIZE': {
             errorCode = MsgIds.M0030010;
             errorMessage = logger.getMessage(MsgIds.M0030010);
-
             break;
           }
 
           case 'LIMIT_UNEXPECTED_FILE': {
             errorCode = MsgIds.M0030011;
             errorMessage = logger.getMessage(MsgIds.M0030011);
-
             break;
           }
 

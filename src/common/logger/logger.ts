@@ -1,12 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable unicorn/no-array-reduce */
-/* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/naming-convention */
-import config from '@/common/configs';
 import expressHttpContext from 'express-http-context';
 import * as winston from 'winston';
 import WinstonDaily from 'winston-daily-rotate-file';
+import config from '@/common/configs';
 
 const LogFileName = {
   server: 'server',

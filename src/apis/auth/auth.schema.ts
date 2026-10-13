@@ -1,5 +1,5 @@
-import { MsgIds, logger } from '@/common/logger/logger';
 import { z } from 'zod';
+import { logger, MsgIds } from '@/common/logger/logger';
 
 export const authSchema = z.object({
   username: z.string().nonempty({

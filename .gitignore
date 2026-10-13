@@ -33,3 +33,5 @@ dist
 logs
 dist
 coverage
+uploads
+.pnpm-store

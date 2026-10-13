@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export class PromiseUtils {
   static settle<T extends unknown[] | []>(promises: T): Promise<{ [P in keyof T]: Awaited<T[P]> }> {
     return Promise.all(

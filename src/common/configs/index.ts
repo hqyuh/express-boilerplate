@@ -8,7 +8,7 @@ dotenv.config();
 class ConfigService {
   getEnv(key: keyof IENV): string {
     if (!process.env[key]) {
-      throw new Error(key + ' environment variable does not set');
+      throw new Error(`${key} environment variable does not set`);
     }
 
     return process.env[key];
@@ -18,7 +18,7 @@ class ConfigService {
     return {
       schema: this.schema,
       host: this.getEnv('DB_HOST'),
-      port: Number.parseInt(this.getEnv('DB_PORT')),
+      port: Number.parseInt(this.getEnv('DB_PORT'), 10),
       username: this.getEnv('DB_USERNAME'),
       password: this.getEnv('DB_PASSWORD'),
       database: this.getEnv('DB_DATABASE'),
@@ -30,10 +30,9 @@ class ConfigService {
 
   get redisConfig(): RedisOptions {
     return {
-      // eslint-disable-next-line max-len
       host: process.env.DOCKER_CONTAINER === 'true' ? this.getEnv('REDIS_HOST_DOCKER') : this.getEnv('REDIS_HOST'),
-      port: Number.parseInt(this.getEnv('REDIS_PORT')),
-      db: Number.parseInt(this.getEnv('REDIS_DB')),
+      port: Number.parseInt(this.getEnv('REDIS_PORT'), 10),
+      db: Number.parseInt(this.getEnv('REDIS_DB'), 10),
       password: this.getEnv('REDIS_PASSWORD'),
     };
   }
@@ -55,7 +54,7 @@ class ConfigService {
   }
 
   get portServer(): number {
-    return Number.parseInt(this.getEnv('PORT'));
+    return Number.parseInt(this.getEnv('PORT'), 10);
   }
 
   get hostServer(): string {

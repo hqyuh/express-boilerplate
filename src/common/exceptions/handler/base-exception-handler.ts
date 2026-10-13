@@ -1,7 +1,7 @@
+import type { Response } from 'express';
 import HttpStatusCode from '@/common/constants/http-status-code';
 import type { IBodyResponse, IErrorDetail } from '@/common/interfaces/express';
-import { MsgIds, logger } from '@/common/logger/logger';
-import type { Response } from 'express';
+import { logger, MsgIds } from '@/common/logger/logger';
 
 import BaseException from '../base-exception';
 
@@ -28,7 +28,6 @@ class BaseExceptionHandler {
       errors,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (statusCode === HttpStatusCode.INTERNAL_SERVER_ERROR) {
       errors[0].errorMessage = 'Internal Server Error';
     }
@@ -39,7 +38,6 @@ class BaseExceptionHandler {
   private handleUntrustedError(error: Error, response?: Response): void {
     const statusCode = HttpStatusCode.INTERNAL_SERVER_ERROR;
     logger.writeWithError(MsgIds.M003003, error);
-    // eslint-disable-next-line max-len
     const errorDetail: IErrorDetail = { errorCode: MsgIds.M003003, errorMessage: logger.getMessage(MsgIds.M003003) };
     const responseData: IBodyResponse = {
       httpStatusCode: statusCode,

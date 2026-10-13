@@ -1,6 +1,6 @@
-import config from '@/common/configs';
-import { MsgIds, logger } from '@/common/logger/logger';
 import Redis from 'ioredis';
+import config from '@/common/configs';
+import { logger, MsgIds } from '@/common/logger/logger';
 
 export default class Cache {
   readonly redis: Redis;
